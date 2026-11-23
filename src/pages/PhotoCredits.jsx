@@ -16,6 +16,11 @@ const credits = [
   ['Devkund', 'Kautuk1', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Devkund_waterfalls.jpg'],
   ['Guhagar', 'Mahendra5806', 'CC BY-SA 3.0', 'https://commons.wikimedia.org/wiki/File:Guhagar_Beach.JPG'],
   ['Ganpatipule', 'Sanjaybhagwat', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:GANPATIPULE_BEACH_(1).jpg'],
+  ['Raigad Fort (Nagarkhana)', 'Nilamgandhre', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Nagarkhana,_Raigad_Fort,_India.jpg'],
+  ['Tarkarli', 'Rohit Keluskar', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Tarkarli_Photo_by_Sandeep_Wairkar1.jpg'],
+  ['Kaas Plateau', 'Sheetal Kulkarni', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Kaas_plateau_flowers_1.jpg'],
+  ['Harihareshwar', 'Dinesh Valke', 'CC BY-SA 2.0', 'https://commons.wikimedia.org/wiki/File:Harihareshwar_beach_(51733119386).jpg'],
+  ['Malshej Ghat', 'Dinesh Valke', 'CC BY-SA 2.0', 'https://commons.wikimedia.org/wiki/File:Malshej_Ghat_(51546139549).jpg'],
 ];
 
 export default function PhotoCredits() {

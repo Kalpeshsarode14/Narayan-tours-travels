@@ -30,7 +30,7 @@ export const business = {
   serviceArea: 'Mumbai, Thane, Navi Mumbai, Pune & Konkan',
   coverage: 'Maharashtra & All-India tours',
   // Your live website address (used for SEO tags). Change after deploying.
-  siteUrl: 'https://narayan-tours.vercel.app',
+  siteUrl: 'https://ntt-travel.vercel.app',
   logo: 'brand/ntt-emblem-dark.webp',
   logoLight: 'brand/ntt-logo-light.webp',
   heroPhoto: 'brand/hero-fleet.webp',

@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Plain CSS (no @apply) so the same file works everywhere */
+html { scroll-behavior: smooth; scroll-padding-top: 88px; -webkit-text-size-adjust: 100%; }
+body { font-family: 'DM Sans', system-ui, sans-serif; color: #0a1834; background: #eef3fb; overflow-x: clip; }
+.container-x { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: max(5vw, 16px); }
+.text-balance { text-wrap: balance; }
+input[type='date'], input[type='time'] { min-height: 50px; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

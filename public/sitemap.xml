@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://narayan-tours.vercel.app/</loc></url>
-  <url><loc>https://narayan-tours.vercel.app/about</loc></url>
-  <url><loc>https://narayan-tours.vercel.app/fleet</loc></url>
-  <url><loc>https://narayan-tours.vercel.app/services</loc></url>
-  <url><loc>https://narayan-tours.vercel.app/destinations</loc></url>
-  <url><loc>https://narayan-tours.vercel.app/fare-calculator</loc></url>
-  <url><loc>https://narayan-tours.vercel.app/packages</loc></url>
-  <url><loc>https://narayan-tours.vercel.app/gallery</loc></url>
-  <url><loc>https://narayan-tours.vercel.app/contact</loc></url>
-  <url><loc>https://narayan-tours.vercel.app/book</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/about</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/fleet</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/services</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/destinations</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/packages</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/fare-calculator</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/gallery</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/contact</loc></url>
+  <url><loc>https://ntt-travel.vercel.app/book</loc></url>
 </urlset>

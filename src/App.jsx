@@ -11,6 +11,7 @@ import Packages from './pages/Packages.jsx';
 import Contact from './pages/Contact.jsx';
 import Book from './pages/Book.jsx';
 import NotFound from './pages/NotFound.jsx';
+import PhotoCredits from './pages/PhotoCredits.jsx';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="gallery" element={<Gallery />} />
         <Route path="contact" element={<Contact />} />
         <Route path="book" element={<Book />} />
+        <Route path="photo-credits" element={<PhotoCredits />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

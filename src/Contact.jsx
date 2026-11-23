@@ -20,9 +20,6 @@ export default function Contact() {
             <ul className="mt-6 space-y-4">
               <li className="flex items-center gap-3"><User className="h-5 w-5 text-gold-400" /> <span><span className="block text-sm text-navy-100">Contact person</span>{business.owner}</span></li>
               <li className="flex items-center gap-3"><Phone className="h-5 w-5 text-gold-400" /> <span><span className="block text-sm text-navy-100">Mobile</span><a href={telLink} className="font-display text-xl font-semibold hover:text-gold-300">{business.phoneDisplay}</a></span></li>
-              {business.otherNumbers.map((n) => (
-                <li key={n.display} className="flex items-center gap-3"><Phone className="h-5 w-5 text-gold-400" /> <span><span className="block text-sm text-navy-100">{n.label}</span><a href={`tel:${n.tel}`} className="font-display text-lg font-semibold hover:text-gold-300">{n.display}</a></span></li>
-              ))}
               <li className="flex items-center gap-3"><MapPin className="h-5 w-5 text-gold-400" /> <span><span className="block text-sm text-navy-100">Office</span>{business.officeCity} · {business.coverage}</span></li>
               <li className="flex items-center gap-3"><Clock className="h-5 w-5 text-gold-400" /> <span><span className="block text-sm text-navy-100">Bookings</span>24/7 on call & WhatsApp · Advance booking available</span></li>
             </ul>

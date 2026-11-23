@@ -131,9 +131,6 @@ function Footer() {
           <ul className="space-y-3 text-[15px]">
             <li className="text-white font-medium">{business.owner}</li>
             <li><a className={`${a} inline-flex items-center gap-2`} href={telLink}><Phone className="h-4 w-4 text-gold-400" /> {business.phoneDisplay}</a></li>
-            {business.otherNumbers.map((n) => (
-              <li key={n.display}><a className={`${a} inline-flex items-center gap-2`} href={`tel:${n.tel}`}><Phone className="h-4 w-4 text-gold-400" /> {n.display} <span className="text-xs text-navy-300">({n.label})</span></a></li>
-            ))}
             <li><a className={`${a} inline-flex items-center gap-2`} href={whatsappLink()} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-4 w-4 text-[#25D366]" /> WhatsApp us</a></li>
             {business.email && <li><a className={`${a} inline-flex items-center gap-2`} href={`mailto:${business.email}`}><Mail className="h-4 w-4 text-gold-400" /> {business.email}</a></li>}
             <li className="inline-flex items-start gap-2"><MapPin className="h-4 w-4 mt-1 text-gold-400 shrink-0" /> Office: {business.officeCity}<br />Serving {business.serviceArea}</li>
@@ -143,7 +140,10 @@ function Footer() {
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col gap-2 py-5 text-sm sm:flex-row sm:justify-between">
           <p>© {year} {business.name} ({business.brand}). All rights reserved.</p>
-          <p>{business.tagline}</p>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>{business.tagline}</span>
+            <Link to="/photo-credits" className="underline underline-offset-2 opacity-80 hover:opacity-100">Photo credits</Link>
+          </p>
         </div>
       </div>
     </footer>

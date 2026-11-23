@@ -20,11 +20,6 @@ export const business = {
   phoneDisplay: '9967 456 323',
   phoneTel: '+919967456323',
   whatsappNumber: '919967456323', // country code + number, digits only
-  // Other numbers shown on the Contact page and footer (from your posters)
-  otherNumbers: [
-    { label: 'Alternate number', display: '9136 365 143', tel: '+919136365143', whatsapp: '919136365143' },
-    { label: 'WhatsApp', display: '7208 126 706', tel: '+917208126706', whatsapp: '917208126706' },
-  ],
   email: '', // add an email address if you have one
   officeCity: 'Mumbai, India',
   serviceArea: 'Mumbai, Thane, Navi Mumbai, Pune & Konkan',

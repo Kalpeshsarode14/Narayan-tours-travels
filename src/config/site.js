@@ -101,7 +101,7 @@ export const packages = [
       { label: 'Sedan (4 seater)', price: 17999, vehicle: 'dzire' },
       { label: 'SUV (6–7 seater)', price: 23999, vehicle: 'ertiga' },
     ],
-    photos: ['destinations/shirdi.webp', 'destinations/shani-shingnapur.webp', 'destinations/trimbakeshwar.webp', 'destinations/nashik-panchavati.webp', 'destinations/saptashrungi.webp'],
+    photos: ['destinations/shirdi.webp', 'destinations/shani-shingnapur.webp', 'destinations/trimbakeshwar.webp', 'destinations/nashik-panchavati.webp', 'destinations/kalaram.webp'],
     places: [
       'Sai Baba Samadhi Mandir, Shirdi', 'Shani Shingnapur Mandir', 'Trimbakeshwar Jyotirlinga, Nashik', 'Panchavati & Godavari Ghat',
       'Kalaram Mandir, Nashik', 'Sita Gufa', 'Muktidham Mandir, Nashik', 'Saptashrungi Devi Mandir, Vani',

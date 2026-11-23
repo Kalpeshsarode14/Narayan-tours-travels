@@ -49,7 +49,7 @@ function Hero() {
         </div>
         <figure className="relative motion-safe:animate-rise [animation-delay:.25s]">
           <div className="absolute -inset-3 rounded-[2.2rem] bg-gradient-to-br from-gold-400 via-saffron-500 to-transparent opacity-60 blur-xl" aria-hidden="true" />
-          <img src={img(business.heroPhoto)} alt="Narayan Tours & Travels Maruti Suzuki Dzire and Ertiga on a scenic Maharashtra road with fort, beach and temple"
+          <img src={img(business.heroPhoto)} alt="Mumbai–Pune Expressway, Maharashtra"
             className="relative aspect-[16/9] w-full rounded-[2rem] object-cover shadow-2xl ring-4 ring-white/10" width="1300" height="571" fetchpriority="high" />
           <figcaption className="absolute -bottom-6 left-4 right-4 flex flex-wrap justify-center gap-2 sm:left-auto sm:right-6 sm:justify-end">
             <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-navy-900 shadow-lg">One Sedan + One Ertiga available</span>

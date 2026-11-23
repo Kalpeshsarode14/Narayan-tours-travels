@@ -143,7 +143,10 @@ function Footer() {
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col gap-2 py-5 text-sm sm:flex-row sm:justify-between">
           <p>© {year} {business.name} ({business.brand}). All rights reserved.</p>
-          <p>{business.tagline}</p>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>{business.tagline}</span>
+            <Link to="/photo-credits" className="underline underline-offset-2 opacity-80 hover:opacity-100">Photo credits</Link>
+          </p>
         </div>
       </div>
     </footer>

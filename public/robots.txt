@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://narayan-tours.vercel.app/sitemap.xml
+Sitemap: https://ntt-travel.vercel.app/sitemap.xml

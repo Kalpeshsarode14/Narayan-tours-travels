@@ -56,7 +56,7 @@ export const DEFAULT_PRICING: PricingConfig = {
   nightCharge: { enabled: true, startHour: 22, endHour: 6, mode: "flat", value: 250 },
   waitingCharge: { enabled: true, freeMinutes: 30, perHour: 150 },
   extraStopCharge: { enabled: true, perStop: 100 },
-  toll: { enabled: true, mode: "routes_api", perKmEstimate: 1.5 },
+  toll: { enabled: true, mode: "per_km_estimate", perKmEstimate: 1.5 },
   parking: { enabled: true, airportFlat: 150, perStop: 0 },
   minimumFare: { enabled: true, amount: 800 },
   gst: { enabled: false, percent: 5 },

@@ -1,0 +1,308 @@
+.ntt-admin {
+  --ntt-navy: #0a1834;
+  --ntt-navy-2: #13254d;
+  --ntt-card: #ffffff;
+  --ntt-bg: #f4f6fb;
+  --ntt-line: #e3e7f0;
+  --ntt-muted: #5b6478;
+  --ntt-err: #c62828;
+  --ntt-ok: #15803d;
+  --ntt-accent: #f5a524;
+  --ntt-accent-ink: #1f1300;
+  --ntt-ink: #0f172a;
+  --ntt-radius: 14px;
+  --ntt-shadow: 0 1px 2px rgba(10, 24, 52, 0.06), 0 8px 24px rgba(10, 24, 52, 0.06);
+  min-height: 100vh;
+  background: #f4f6fb;
+  color: var(--ntt-ink);
+}
+.ntt-admin *,
+.ntt-admin *::before,
+.ntt-admin *::after {
+  box-sizing: border-box;
+}
+.ntt-admin-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 12px 20px;
+  background: var(--ntt-navy);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.ntt-admin-bar nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+}
+.ntt-admin-bar nav button {
+  border: 0;
+  background: transparent;
+  color: #c7d0e4;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ntt-admin-bar nav button.active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.ntt-admin-user {
+  font-size: 0.85rem;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.ntt-admin-user .ntt-link-btn {
+  color: #fff;
+}
+.ntt-admin-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 14px 80px;
+  display: grid;
+  gap: 16px;
+}
+.ntt-admin-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+.ntt-admin-login form {
+  width: min(400px, 100%);
+}
+.ntt-admin-login h1 {
+  margin: 0 0 16px;
+  color: var(--ntt-navy);
+  font-size: 1.4rem;
+}
+
+.ntt-adm-pricing {
+  display: grid;
+  gap: 16px;
+}
+.ntt-adm-savebar {
+  position: sticky;
+  top: 58px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--ntt-line);
+  border-radius: var(--ntt-radius);
+  padding: 12px 14px;
+  box-shadow: var(--ntt-shadow);
+}
+.ntt-adm-savebar > div {
+  flex: 1;
+  min-width: 200px;
+}
+.ntt-adm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 8px 0 12px;
+}
+.ntt-adm-num {
+  display: grid;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #13254d;
+}
+.ntt-adm-num input,
+.ntt-adm-num select,
+.ntt-adm-table input,
+.ntt-adm-filters input,
+.ntt-adm-filters select {
+  font: inherit;
+  font-weight: 400;
+  font-size: 15px;
+  padding: 9px 10px;
+  border: 1.5px solid var(--ntt-line);
+  border-radius: 8px;
+  width: 100%;
+  min-width: 0;
+  background: #fff;
+}
+.ntt-adm-input {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--ntt-line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 0 8px;
+}
+.ntt-adm-input input {
+  border: 0 !important;
+  padding: 9px 4px;
+}
+.ntt-adm-input em {
+  font-style: normal;
+  color: var(--ntt-muted);
+  font-weight: 500;
+}
+.ntt-adm-num.has-error .ntt-adm-input,
+.ntt-adm-num.has-error input {
+  border-color: var(--ntt-err);
+}
+.ntt-adm-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: var(--ntt-navy);
+  cursor: pointer;
+}
+.ntt-adm-toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--ntt-navy);
+}
+.ntt-adm-block {
+  border-top: 1px solid var(--ntt-line);
+  padding-top: 12px;
+  margin-top: 8px;
+}
+.ntt-adm-vehicle {
+  border: 1px solid var(--ntt-line);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.ntt-adm-vehicle summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+.ntt-adm-vehicle h4 {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ntt-muted);
+}
+.ntt-adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.ntt-adm-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  color: var(--ntt-muted);
+  text-transform: uppercase;
+  padding: 6px;
+}
+.ntt-adm-table td {
+  padding: 6px;
+  border-top: 1px solid var(--ntt-line);
+  vertical-align: top;
+}
+.ntt-adm-table td small {
+  display: block;
+  color: var(--ntt-muted);
+  font-size: 0.78rem;
+}
+.ntt-adm-scroll {
+  overflow-x: auto;
+}
+.ntt-adm-bookings {
+  min-width: 860px;
+}
+.ntt-adm-route span {
+  font-weight: 600;
+}
+.ntt-adm-detail td {
+  background: #f8faff;
+}
+.ntt-adm-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 8px 0;
+}
+.ntt-adm-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.ntt-adm-filters h2 {
+  margin: 0;
+}
+.ntt-adm-filters form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ntt-adm-filters input {
+  width: 240px;
+}
+.ntt-adm-filters select {
+  width: auto;
+}
+.ntt-adm-pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.ntt-status-select {
+  text-transform: capitalize;
+  font-weight: 700;
+  border-radius: 999px !important;
+}
+.ntt-status-pending {
+  color: #b45309;
+}
+.ntt-status-confirmed {
+  color: #1d4ed8;
+}
+.ntt-status-assigned {
+  color: #6d28d9;
+}
+.ntt-status-completed {
+  color: var(--ntt-ok);
+}
+.ntt-status-cancelled {
+  color: var(--ntt-err);
+}
+.ntt-danger {
+  color: var(--ntt-err);
+}
+.ntt-adm-settings {
+  max-width: 560px;
+}
+.ntt-admin .ntt-card h2 {
+  margin-top: 0;
+}
+@media (max-width: 700px) {
+  .ntt-adm-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .ntt-adm-savebar {
+    top: 0;
+  }
+}
+.ntt-admin h1,
+.ntt-admin h2,
+.ntt-admin h4,
+.ntt-admin-login h1 {
+  font-weight: 700;
+  font-family: Poppins, system-ui, sans-serif;
+}

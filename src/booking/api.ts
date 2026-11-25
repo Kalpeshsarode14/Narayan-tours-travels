@@ -44,12 +44,22 @@ export interface TripPayload {
 }
 
 export interface QuoteResponse {
+  places?: { pickup: PlaceSelection; drop: PlaceSelection; stops: PlaceSelection[] };
   route: { distanceMeters: number; durationSeconds: number; encodedPolyline?: string; tollEstimate?: number | null };
   fare: FareBreakdown | null;
   fareError: string | null;
 }
 
+export interface PlaceSuggestion {
+  placeId: string;
+  main: string;
+  secondary: string;
+  description: string;
+}
+
 export const api = {
+  places: (input: string) => call<{ suggestions: PlaceSuggestion[] }>(`/api/places?input=${encodeURIComponent(input)}`),
+  place: (placeId: string) => call<{ place: PlaceSelection }>(`/api/places?placeId=${encodeURIComponent(placeId)}`),
   config: () => call<{ pricing: PricingConfig; business: BusinessInfo }>("/api/booking-config"),
   quote: (p: TripPayload) => call<QuoteResponse>("/api/quote", { method: "POST", body: JSON.stringify(p) }),
   book: (p: TripPayload & { customer: { name: string; mobile: string; email: string }; passengers: number; specialRequirements: string; expectedTotal: number }) =>

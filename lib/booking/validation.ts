@@ -39,8 +39,8 @@ function parsePlace(v: unknown, field: string, errors: Record<string, string>): 
   const loc = isObj(v.location) ? v.location : {};
   const lat = num(loc.lat);
   const lng = num(loc.lng);
-  if (!placeId || !/^[A-Za-z0-9_\-]+$/.test(placeId)) {
-    errors[field] = "Please select a location from the Google suggestions.";
+  if (!placeId || !/^[A-Za-z0-9_:.\-]{1,200}$/.test(placeId)) {
+    errors[field] = "Please select a location from the suggestions.";
     return null;
   }
   if (!(lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180)) {
@@ -240,7 +240,9 @@ export function validatePricingConfig(raw: unknown): PricingConfig {
   const startHour = Math.floor(nonNeg(nc.startHour, "nightCharge.startHour", 23));
   const endHour = Math.floor(nonNeg(nc.endHour, "nightCharge.endHour", 23));
   const nightMode = nc.mode === "percent" ? "percent" : "flat";
-  const tollMode = tl.mode === "per_km_estimate" || tl.mode === "actuals" ? tl.mode : "routes_api";
+  // "routes_api" (map-provider toll estimate) is kept for old saved configs; Ola Maps has no toll prices,
+  // so it behaves like the per-km estimate.
+  const tollMode = tl.mode === "actuals" || tl.mode === "routes_api" ? tl.mode : "per_km_estimate";
 
   const extraIds = new Set<string>();
   const extras = (Array.isArray(r.extras) ? r.extras : []).slice(0, 20).map((er, i) => {

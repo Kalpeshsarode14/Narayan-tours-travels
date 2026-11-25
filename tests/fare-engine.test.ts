@@ -1,12 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { calculateFare, isNightTime, tripDaysBetween, FareError } from "../lib/booking/fare-engine.js";
-import { DEFAULT_PRICING } from "../lib/booking/default-pricing.js";
+import { DEFAULT_PRICING as SHIPPED_DEFAULTS } from "../lib/booking/default-pricing.js";
 import type { FareInput, PricingConfig } from "../lib/booking/types.js";
 import { validatePricingConfig, parseBookingRequest, parseQuoteRequest, normalizeIndianMobile, ValidationError } from "../lib/booking/validation.js";
 import { buildWhatsAppMessage, whatsAppLink } from "../lib/booking/whatsapp.js";
 
 const clone = (c: PricingConfig): PricingConfig => JSON.parse(JSON.stringify(c));
+// Most engine tests use a map-provided toll estimate ("routes_api") so toll amounts are exact;
+// the shipped default (per-km estimate, as Ola Maps has no toll prices) is tested separately below.
+const DEFAULT_PRICING: PricingConfig = { ...clone(SHIPPED_DEFAULTS), toll: { enabled: true, mode: "routes_api", perKmEstimate: 1.5 } };
 const base: FareInput = {
   tripType: "one_way",
   vehicleId: "dzire",
@@ -206,4 +209,20 @@ test("WhatsApp message and link", () => {
   const link = whatsAppLink("99674 56323", msg);
   assert.ok(link.startsWith("https://wa.me/919967456323?text="));
   assert.equal(decodeURIComponent(link.split("text=")[1]), msg);
+});
+
+test("shipped defaults: tolls estimated per km (Ola Maps gives no toll prices)", () => {
+  assert.equal(SHIPPED_DEFAULTS.toll.mode, "per_km_estimate");
+  const f = calculateFare(SHIPPED_DEFAULTS, base, { distanceMeters: 150_400, durationSeconds: 10_800, tollEstimate: null });
+  assert.equal(f.lines.find((l) => l.code === "toll")?.amount, Math.round(150.4 * 1.5));
+  assert.equal(f.total, 151 * 14 + 300 + 226);
+  assert.deepEqual(validatePricingConfig(SHIPPED_DEFAULTS), SHIPPED_DEFAULTS);
+});
+
+test("old saved configs with routes_api still validate", () => {
+  const old = clone(SHIPPED_DEFAULTS) as any;
+  old.toll.mode = "routes_api";
+  assert.equal(validatePricingConfig(old).toll.mode, "routes_api");
+  old.toll.mode = "bogus";
+  assert.equal(validatePricingConfig(old).toll.mode, "per_km_estimate");
 });

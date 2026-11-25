@@ -49,7 +49,7 @@ export async function verifyPlaces(pickup: PlaceSelection, drop: PlaceSelection,
 }
 
 export function routeCacheKey(pickup: PlaceSelection, drop: PlaceSelection, stops: PlaceSelection[]) {
-  return "route:" + hash(["ola-v1", pickup.placeId, ...stops.map((s) => s.placeId), drop.placeId].join("|"));
+  return "route:" + hash(["ola-v2", pickup.placeId, ...stops.map((s) => s.placeId), drop.placeId].join("|"));
 }
 
 /** Route between already-verified places. */

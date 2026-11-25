@@ -309,7 +309,6 @@ export default function PricingEditor({ api }: { api: AdminFetch }) {
             <label className="ntt-adm-num">
               <span>How tolls are charged</span>
               <select value={cfg.toll.mode} onChange={(e) => upd(["toll", "mode"], e.target.value)}>
-                <option value="routes_api">Google Maps toll estimate (falls back to ₹/km)</option>
                 <option value="per_km_estimate">Estimate at ₹ per km</option>
                 <option value="actuals">Not included, customer pays at actuals</option>
               </select>
@@ -467,7 +466,7 @@ function FareTester({ cfg }: { cfg: PricingConfig }) {
           <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
         </label>
         <label className="ntt-adm-num">
-          <span>Google toll estimate ₹</span>
+          <span>Map toll estimate ₹ (if any)</span>
           <input type="number" min={0} value={toll} onChange={(e) => setToll(+e.target.value)} />
         </label>
         {tripType === "round_trip" && (

@@ -62,7 +62,7 @@ globalThis.fetch = (async (input: any, init: any = {}) => {
       if (!p) return new Response(JSON.stringify({ status: "zero_results" }));
       return new Response(JSON.stringify({ status: "ok", result: { name: p.name, formatted_address: p.address, geometry: { location: { lat: p.lat, lng: p.lng } } } }));
     }
-    if (url.pathname === "/routing/v1/directions/basic") {
+    if (url.pathname === "/routing/v1/directions") {
       assert.equal(method, "POST");
       directionsParams = url.searchParams;
       return new Response(JSON.stringify({ status: "SUCCESS", routes: [{ legs: [{ distance: 150_400, duration: 10_800 }], overview_polyline: "abc" }] }));
@@ -144,7 +144,7 @@ test("quote → booking → confirmation, server-side fare and cached route", as
   // Changing vehicle re-uses the cached route (no extra Google call)
   const q2 = await (await postQuote(post({ ...trip, vehicleId: "ertiga" }))).json();
   assert.equal(q2.fare.total, 151 * 17 + 300 + 226);
-  assert.equal(olaCalls["/routing/v1/directions/basic"], 1);
+  assert.equal(olaCalls["/routing/v1/directions"], 1);
   assert.equal(olaCalls["/places/v1/details"], 2, "each place verified once, then cached");
 
   const booking = {
@@ -158,7 +158,7 @@ test("quote → booking → confirmation, server-side fare and cached route", as
   assert.equal(bRes.status, 201);
   const b = await bRes.json();
   assert.match(b.bookingId, /^NTT-\d{6}-[A-Z2-9]{5}$/);
-  assert.equal(olaCalls["/routing/v1/directions/basic"], 1, "booking uses the same cached route as the preview");
+  assert.equal(olaCalls["/routing/v1/directions"], 1, "booking uses the same cached route as the preview");
   assert.equal(olaCalls["/places/v1/details"], 2);
 
   const saved = tables.bookings[0];

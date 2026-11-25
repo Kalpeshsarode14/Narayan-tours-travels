@@ -71,12 +71,12 @@ A price change in `site.js` updates the fleet cards, the quick fare calculator a
 
 The **Book Now** page (`/book`) is a full online booking system:
 
-* The customer picks **exact pickup, stops and drop-off from Google Maps** suggestions (typed text alone is not accepted).
-* The site gets the real **driving route, distance and travel time** from Google and shows it on a map.
+* The customer picks **exact pickup, stops and drop-off from Ola Maps** location suggestions (typed text alone is not accepted).
+* The site gets the real **driving route, distance and travel time** from Ola Maps and shows it on a map.
 * The **final fare** and a full breakdown (base, distance, driver allowance, tolls, night/waiting/stop charges, add-ons) appear instantly and update when anything changes.
 * On **Confirm Booking**, the server recalculates the fare (customers cannot change it), saves the booking in the **Supabase** database with a booking ID such as `NTT-261210-7KQ4M`, and shows a confirmation page with a **Send on WhatsApp** button to +91 99674 56323.
 * The owner manages **prices, bookings and the WhatsApp number** at `/admin` (password protected).
-* Until the booking service is set up (Google keys + Supabase + Vercel settings), `/book` automatically falls back to the previous **WhatsApp request form**, so the site never breaks.
+* Until the booking service is set up (Ola Maps keys + Supabase + Vercel settings), `/book` automatically falls back to the previous **WhatsApp request form**, so the site never breaks.
 
 **Setup (one time, ~30 minutes):** follow [`docs/BOOKING-SETUP.md`](docs/BOOKING-SETUP.md).
 
@@ -100,11 +100,11 @@ After going live, add the site to **Google Search Console** and your **Google Bu
 ```
 api/                  ← Vercel server functions: route + fare (/api/quote), bookings, admin
 lib/booking/          ← fare calculation, validation, WhatsApp message (shared by browser and server)
-lib/server/           ← Google Routes, Supabase, admin login check (server only)
+lib/server/           ← Ola Maps (search, place check, route), Supabase, admin login check (server only)
 supabase/schema.sql   ← database tables (run once in Supabase)
 tests/                ← automated tests: npm test
 src/
-  booking/            ← booking page, Google Maps search + map, fare breakdown, confirmation
+  booking/            ← booking page, location search + Ola map, fare breakdown, confirmation
   admin/              ← admin dashboard (pricing, bookings, business settings)
   config/site.js      ← business details, prices, packages, routes, testimonials
   data/content.js     ← services, destinations, FAQ, gallery

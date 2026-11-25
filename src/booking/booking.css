@@ -1,0 +1,903 @@
+/* NTT booking UI. Every class is prefixed ntt- so nothing leaks into the rest of the site.
+   Colours and fonts mirror tailwind.theme.js (navy / gold / saffron, Poppins + DM Sans). */
+.ntt-booking {
+  --ntt-navy: #0a1834;
+  --ntt-navy-2: #13254d;
+  --ntt-accent: #fcc419; /* gold-400 */
+  --ntt-accent-ink: #06101f;
+  --ntt-saffron: #f57c00;
+  --ntt-gold-tint: rgba(255, 244, 209, 0.6);
+  --ntt-bg: #eef3fb;
+  --ntt-card: #ffffff;
+  --ntt-ink: #0a1834;
+  --ntt-muted: #5b6478;
+  --ntt-line: #d6e1f3;
+  --ntt-ok: #15803d;
+  --ntt-err: #c62828;
+  --ntt-radius: 24px;
+  --ntt-display: Poppins, system-ui, sans-serif;
+  --ntt-shadow: 0 1px 2px rgba(10, 24, 52, 0.06), 0 12px 32px -12px rgba(10, 24, 52, 0.25);
+
+  color: var(--ntt-ink);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  padding: 0 0 100px; /* room for the sticky fare bar on phones */
+  box-sizing: border-box;
+}
+.ntt-booking *,
+.ntt-booking *::before,
+.ntt-booking *::after {
+  box-sizing: border-box;
+}
+
+.ntt-booking-head {
+  max-width: 1180px;
+  margin: 0 auto 16px;
+}
+.ntt-booking-head h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+  color: var(--ntt-navy);
+}
+.ntt-booking-head p {
+  margin: 0;
+  color: var(--ntt-muted);
+}
+
+.ntt-booking-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+.ntt-col-form,
+.ntt-col-side {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
+.ntt-card {
+  background: var(--ntt-card);
+  border-radius: var(--ntt-radius);
+  box-shadow: var(--ntt-shadow);
+  padding: 18px 16px;
+  border: 1px solid var(--ntt-line);
+}
+.ntt-card h2 {
+  font-size: 1.1rem;
+  margin: 0 0 14px;
+  color: var(--ntt-navy);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ntt-step {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ntt-navy);
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+/* Trip type tabs */
+.ntt-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  grid-auto-flow: column;
+  background: #edf0f7;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.ntt-tabs button {
+  border: 0;
+  background: transparent;
+  padding: 10px 4px;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ntt-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ntt-tabs button.active {
+  background: var(--ntt-navy);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(10, 24, 52, 0.25);
+}
+
+/* Fields */
+.ntt-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.ntt-field label,
+.ntt-extras legend {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ntt-navy-2);
+}
+.ntt-field input,
+.ntt-field select,
+.ntt-field textarea,
+.ntt-prefix {
+  width: 100%;
+  font: inherit;
+  font-size: 16px; /* prevents iOS zoom */
+  padding: 12px 14px;
+  border: 1.5px solid var(--ntt-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ntt-ink);
+  min-height: 48px;
+}
+.ntt-field input:focus,
+.ntt-field select:focus,
+.ntt-field textarea:focus,
+.ntt-prefix:focus-within {
+  outline: none;
+  border-color: var(--ntt-navy);
+  box-shadow: 0 0 0 3px rgba(10, 24, 52, 0.12);
+}
+.ntt-field.has-error input,
+.ntt-field.has-error select,
+.ntt-field.has-error .ntt-prefix,
+.ntt-field.has-error .ntt-place-input {
+  border-color: var(--ntt-err);
+}
+.ntt-prefix {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 0 14px;
+}
+.ntt-prefix span {
+  color: var(--ntt-muted);
+  font-weight: 600;
+}
+.ntt-prefix input {
+  border: 0 !important;
+  box-shadow: none !important;
+  padding-left: 0;
+}
+.ntt-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.ntt-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ntt-muted);
+}
+.ntt-verified {
+  color: var(--ntt-ok);
+}
+.ntt-error {
+  margin: 0;
+  color: var(--ntt-err);
+  font-size: 0.85rem;
+}
+.ntt-ok {
+  color: var(--ntt-ok);
+}
+.ntt-muted {
+  color: var(--ntt-muted);
+}
+.ntt-notice {
+  margin: 0;
+  background: #fff7e6;
+  border: 1px solid #f6c97a;
+  color: #7a4a00;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+/* Place input */
+.ntt-route-inputs {
+  position: relative;
+}
+.ntt-place-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid var(--ntt-line);
+  border-radius: 10px;
+  padding: 0 10px 0 14px;
+  background: #fff;
+  min-height: 52px;
+}
+.ntt-place-input:focus-within {
+  border-color: var(--ntt-navy);
+  box-shadow: 0 0 0 3px rgba(10, 24, 52, 0.12);
+}
+.ntt-place-input input {
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 12px 0;
+  flex: 1;
+  min-width: 0;
+}
+.ntt-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex: none;
+  display: inline-block;
+}
+.ntt-dot-pickup {
+  background: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.15);
+}
+.ntt-dot-drop {
+  background: #dc2626;
+  border-radius: 3px;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15);
+}
+.ntt-dot-stop {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+}
+.ntt-clear {
+  border: 0;
+  background: #eef1f7;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ntt-muted);
+  flex: none;
+}
+.ntt-remove {
+  border: 0;
+  background: none;
+  color: var(--ntt-err);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.ntt-suggestions {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin: 4px 0 0;
+  padding: 6px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--ntt-line);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(10, 24, 52, 0.18);
+  max-height: 340px;
+  overflow: auto;
+}
+.ntt-suggestions li {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+}
+.ntt-suggestions li span {
+  font-size: 0.82rem;
+  color: var(--ntt-muted);
+}
+.ntt-suggestions li.active,
+.ntt-suggestions li:hover {
+  background: #eef2fb;
+}
+.ntt-suggestions li.ntt-powered {
+  cursor: default;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--ntt-muted);
+  padding: 4px 8px 2px;
+  background: none;
+}
+
+.ntt-link-btn {
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ntt-navy);
+  cursor: pointer;
+  text-align: left;
+}
+.ntt-link-btn:hover {
+  text-decoration: underline;
+}
+.ntt-route-inputs > .ntt-link-btn {
+  margin: -4px 0 14px;
+}
+
+/* Vehicles */
+.ntt-vehicles {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.ntt-vehicle {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "cat total" "name total" "meta rate";
+  text-align: left;
+  border: 1.5px solid var(--ntt-line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  cursor: pointer;
+  color: var(--ntt-ink);
+  gap: 0 10px;
+}
+.ntt-vehicle.active {
+  border-color: var(--ntt-navy);
+  background: #f3f6fd;
+  box-shadow: 0 0 0 3px rgba(10, 24, 52, 0.1);
+}
+.ntt-vehicle-cat {
+  grid-area: cat;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ntt-muted);
+}
+.ntt-vehicle strong {
+  grid-area: name;
+}
+.ntt-vehicle-meta {
+  grid-area: meta;
+  font-size: 0.82rem;
+  color: var(--ntt-muted);
+}
+.ntt-vehicle-rate {
+  grid-area: rate;
+  font-size: 0.82rem;
+  color: var(--ntt-muted);
+  text-align: right;
+}
+.ntt-vehicle-total {
+  grid-area: total;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--ntt-navy);
+  align-self: center;
+  text-align: right;
+}
+.ntt-extras {
+  border: 0;
+  padding: 0;
+  margin: 14px 0 0;
+  display: grid;
+  gap: 8px;
+}
+.ntt-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+.ntt-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--ntt-navy);
+}
+
+.ntt-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ntt-stepper button {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1.5px solid var(--ntt-line);
+  background: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: var(--ntt-navy);
+}
+.ntt-stepper input {
+  width: 72px !important;
+  text-align: center;
+}
+
+/* Map */
+.ntt-map-card {
+  background: var(--ntt-card);
+  border-radius: var(--ntt-radius);
+  overflow: hidden;
+  box-shadow: var(--ntt-shadow);
+  border: 1px solid var(--ntt-line);
+}
+.ntt-map {
+  height: 260px;
+  background: #e9edf5;
+  position: relative;
+}
+.ntt-map-card.compact .ntt-map {
+  height: 240px;
+}
+.ntt-map-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 4px;
+  color: var(--ntt-muted);
+  padding: 16px;
+  font-size: 0.9rem;
+}
+.ntt-route-stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  border-top: 1px solid var(--ntt-line);
+  text-align: center;
+}
+.ntt-route-stats strong {
+  display: block;
+  font-size: 1.1rem;
+  color: var(--ntt-navy);
+}
+.ntt-stat-label {
+  font-size: 0.75rem;
+  color: var(--ntt-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Fare */
+.ntt-fare-card {
+  background: var(--ntt-card);
+  border-radius: var(--ntt-radius);
+  box-shadow: var(--ntt-shadow);
+  border: 1px solid var(--ntt-line);
+  padding: 18px 16px;
+}
+.ntt-fare-card h3 {
+  margin: 0 0 12px;
+  color: var(--ntt-navy);
+  font-size: 1.1rem;
+}
+.ntt-trip-points {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.ntt-trip-points li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+}
+.ntt-trip-points .ntt-dot {
+  margin-top: 6px;
+}
+.ntt-trip-points small {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--ntt-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ntt-trip-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.ntt-trip-stats div {
+  background: #f4f6fb;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.ntt-trip-stats dt {
+  font-size: 0.72rem;
+  color: var(--ntt-muted);
+}
+.ntt-trip-stats dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ntt-navy);
+}
+.ntt-fare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.ntt-fare-table th {
+  text-align: left;
+  font-weight: 500;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--ntt-line);
+}
+.ntt-fare-table th small {
+  display: block;
+  color: var(--ntt-muted);
+  font-size: 0.76rem;
+}
+.ntt-fare-table td {
+  text-align: right;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--ntt-line);
+  white-space: nowrap;
+  vertical-align: top;
+}
+.ntt-fare-table tfoot th,
+.ntt-fare-table tfoot td {
+  border: 0;
+  padding-top: 12px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ntt-navy);
+}
+.ntt-fare-notes {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 0.8rem;
+  color: var(--ntt-muted);
+}
+.ntt-fare-stale {
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+/* Submit bar: sticky at the bottom on phones */
+.ntt-submit-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1px solid var(--ntt-line);
+  box-shadow: 0 -8px 24px rgba(10, 24, 52, 0.1);
+}
+.ntt-submit-total {
+  flex: 1;
+  min-width: 0;
+}
+.ntt-submit-total small {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--ntt-muted);
+  text-transform: uppercase;
+}
+.ntt-submit-total strong {
+  font-size: 1.35rem;
+  color: var(--ntt-navy);
+}
+.ntt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px solid var(--ntt-line);
+  background: #fff;
+  color: var(--ntt-navy);
+  font: inherit;
+  font-weight: 700;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  min-height: 48px;
+}
+.ntt-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ntt-btn-primary {
+  background: var(--ntt-accent);
+  border-color: var(--ntt-accent);
+  color: var(--ntt-accent-ink);
+}
+.ntt-btn-primary:not(:disabled):hover {
+  filter: brightness(1.05);
+}
+.ntt-btn-whatsapp {
+  background: #25d366;
+  border-color: #25d366;
+  color: #fff;
+}
+.ntt-fineprint {
+  font-size: 0.8rem;
+  color: var(--ntt-muted);
+  margin: 0;
+}
+.ntt-submit-error {
+  background: #fdecec;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.ntt-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #d5dbe8;
+  border-top-color: var(--ntt-navy);
+  border-radius: 50%;
+  animation: ntt-spin 0.8s linear infinite;
+  flex: none;
+}
+.ntt-spinner.large {
+  width: 36px;
+  height: 36px;
+  border-width: 3px;
+}
+@keyframes ntt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ntt-state {
+  min-height: 50vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+/* Confirmation */
+.ntt-confirm-head {
+  max-width: 1180px;
+  margin: 0 auto 16px;
+  text-align: center;
+}
+.ntt-check-badge {
+  width: 64px;
+  height: 64px;
+  margin: 8px auto 12px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ntt-ok);
+  color: #fff;
+  font-size: 2rem;
+  box-shadow: 0 0 0 10px rgba(21, 128, 61, 0.12);
+}
+.ntt-confirm-head h1 {
+  margin: 0 0 6px;
+  color: var(--ntt-navy);
+}
+.ntt-confirm-head p {
+  margin: 4px 0;
+}
+.ntt-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: #fff;
+  border: 1px dashed var(--ntt-navy);
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+.ntt-status {
+  text-transform: capitalize;
+  font-weight: 700;
+}
+.ntt-confirm-actions {
+  max-width: 1180px;
+  margin: 0 auto 16px;
+  display: grid;
+  gap: 10px;
+}
+.ntt-confirm .ntt-booking-grid {
+  padding-bottom: 0;
+}
+.ntt-confirm {
+  padding-bottom: 32px;
+}
+.ntt-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 0;
+}
+.ntt-details dt {
+  font-size: 0.75rem;
+  color: var(--ntt-muted);
+}
+.ntt-details dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Phones: show the route map and fare right after the trip details, before vehicle/customer cards */
+@media (max-width: 959px) {
+  .ntt-booking .ntt-booking-grid > .ntt-col-form,
+  .ntt-booking .ntt-booking-grid > .ntt-col-side {
+    display: contents;
+  }
+  .ntt-o1 { order: 1; }
+  .ntt-o2 { order: 2; }
+  .ntt-o3 { order: 3; }
+  .ntt-o4 { order: 4; }
+  .ntt-o5 { order: 5; }
+  .ntt-o6 { order: 6; }
+}
+
+/* Tablet / desktop */
+@media (min-width: 640px) {
+  .ntt-vehicles {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ntt-confirm-actions {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+  .ntt-details {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ntt-details .wide {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 960px) {
+  .ntt-booking-head h1 {
+    font-size: 2rem;
+  }
+  .ntt-booking-grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 24px;
+  }
+  .ntt-col-side {
+    position: sticky;
+    top: 16px;
+  }
+  .ntt-card,
+  .ntt-fare-card {
+    padding: 22px;
+  }
+  .ntt-map {
+    height: 300px;
+  }
+  .ntt-submit-bar {
+    position: static;
+    border: 1px solid var(--ntt-line);
+    border-radius: var(--ntt-radius);
+    box-shadow: var(--ntt-shadow);
+    padding: 14px 16px;
+  }
+}
+
+@media print {
+  .ntt-confirm-actions,
+  .ntt-map-card {
+    display: none !important;
+  }
+  .ntt-booking {
+    background: #fff;
+    padding: 0;
+  }
+  .ntt-card,
+  .ntt-fare-card {
+    box-shadow: none;
+  }
+}
+
+/* ── Site integration ─────────────────────────────────────────── */
+.ntt-booking h1,
+.ntt-booking h2,
+.ntt-booking h3,
+.ntt-btn,
+.ntt-tabs button,
+.ntt-vehicle strong,
+.ntt-vehicle-total,
+.ntt-submit-total strong,
+.ntt-route-stats strong {
+  font-family: var(--ntt-display);
+}
+.ntt-step {
+  background: #0f2245;
+  color: #fcc419;
+}
+.ntt-btn {
+  border-radius: 999px;
+}
+.ntt-btn-primary {
+  box-shadow: 0 8px 24px -8px rgba(252, 196, 25, 0.7);
+}
+.ntt-btn-primary:not(:disabled):hover {
+  background: #ffd866;
+  filter: none;
+}
+.ntt-vehicle.active {
+  border-color: var(--ntt-saffron);
+  background: var(--ntt-gold-tint);
+  box-shadow: none;
+}
+.ntt-tabs button.active {
+  background: #0f2245;
+}
+.ntt-service-chip {
+  display: inline-block;
+  margin: 0 0 14px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: #fff4d1;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.ntt-confirm {
+  padding-bottom: 0;
+}
+/* On phones the sticky fare bar (with its own Call button) replaces the site's floating buttons,
+   so they don't cover the vehicle prices or the Confirm button. */
+@media (max-width: 959px) {
+  :root:has(.ntt-submit-bar) .ntt-fabs {
+    display: none;
+  }
+}
+.ntt-bar-call {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ntt-saffron);
+  color: #fff;
+  text-decoration: none;
+}
+@media (min-width: 960px) {
+  .ntt-bar-call {
+    display: none;
+  }
+}
+@media (min-width: 960px) {
+  .ntt-booking {
+    padding: 0;
+  }
+  .ntt-col-side {
+    top: 96px; /* below the fixed site header */
+  }
+}
+/* Tailwind's preflight resets heading weights; restore them for the booking UI */
+.ntt-booking h1,
+.ntt-booking h2,
+.ntt-booking h3 {
+  font-weight: 700;
+}
+/* Map pins (Ola Maps markers) */
+.ntt-pin {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  color: #fff;
+  font: 700 12px/1 Poppins, system-ui, sans-serif;
+  box-shadow: 0 2px 6px rgba(10, 24, 52, 0.35);
+}
+.ntt-map .maplibregl-map,
+.ntt-map canvas {
+  border-radius: 0;
+}

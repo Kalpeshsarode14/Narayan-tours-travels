@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /book/confirmation
+Disallow: /api/
 
 Sitemap: https://ntt-travel.vercel.app/sitemap.xml

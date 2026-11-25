@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type BusinessInfo } from "./api";
-import FareSummary from "./FareSummary";
 import RouteMap from "./RouteMap";
-import { formatDuration, formatInr } from "../../lib/booking/fare-engine";
+import { formatDuration } from "../../lib/booking/fare-engine";
 import { buildWhatsAppMessage, formatDateIN, formatTimeIN, whatsAppLink } from "../../lib/booking/whatsapp";
 import { TRIP_TYPE_LABELS, type PlaceSelection } from "../../lib/booking/types";
 import "./booking.css";
@@ -182,15 +181,14 @@ export default function ConfirmationPage(props: Props) {
           />
         </div>
         <aside className="ntt-col-side">
-          <FareSummary
-            title="Fare Breakdown"
-            fare={b.fare_breakdown}
-            pickupAddress={pickupAddr}
-            dropAddress={dropAddr}
-            stops={stops.map((s) => fullAddr(s.name, s.address))}
-          />
+          <section className="ntt-fare-card">
+            <h3>Final Fare</h3>
+            <p style={{ margin: "12px 0 0", padding: "14px 16px", borderRadius: 12, background: "#fff7e6", border: "1px solid #f5c26b", color: "#7a4b00", fontWeight: 600, textAlign: "center" }}>
+              Kindly discuss final fare with cab owner.
+            </p>
+          </section>
           <p className="ntt-fineprint">
-            Booked fare {formatInr(Number(b.final_fare))} is locked for this booking. Questions? Call{" "}
+            Questions? Call{" "}
             <a href={`tel:${biz.phone.replace(/\s/g, "")}`}>{biz.phone}</a>
             {biz.email && (
               <>

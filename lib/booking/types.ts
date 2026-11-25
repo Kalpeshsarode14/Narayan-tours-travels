@@ -87,7 +87,7 @@ export interface PricingConfig {
   };
   toll: {
     enabled: boolean;
-    mode: TollMode; // routes_api = Google estimate, per_km_estimate, actuals = paid by customer on trip
+    mode: TollMode; // per_km_estimate, actuals = paid by customer on trip (routes_api = map-provider estimate, if available)
     perKmEstimate: number; // used for per_km_estimate, and as fallback when Google has no toll data
   };
   parking: {
@@ -124,7 +124,7 @@ export interface RouteInfo {
   distanceMeters: number;
   durationSeconds: number;
   encodedPolyline?: string;
-  /** Google toll estimate in INR for one direction, if available. */
+  /** Map-provider toll estimate in INR for one direction, if available (Ola Maps: not provided). */
   tollEstimate?: number | null;
 }
 

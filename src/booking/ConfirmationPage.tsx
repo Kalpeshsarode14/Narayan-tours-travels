@@ -55,7 +55,11 @@ export default function ConfirmationPage(props: Props) {
   const pickupAddr = fullAddr(b.pickup_name, b.pickup_address);
   const dropAddr = fullAddr(b.drop_name, b.drop_address);
   const time = String(b.pickup_time).slice(0, 5);
-  const message = buildWhatsAppMessage(
+  const pickupDirections =
+    b.pickup_lat != null && b.pickup_lng != null
+      ? `https://www.google.com/maps/dir/?api=1&destination=${b.pickup_lat},${b.pickup_lng}`
+      : "";
+  const baseMessage = buildWhatsAppMessage(
     {
       bookingId: b.booking_code,
       customerName: b.customer_name,
@@ -76,6 +80,9 @@ export default function ConfirmationPage(props: Props) {
     },
     biz.name
   );
+  const message = pickupDirections
+    ? baseMessage.replace(/^(\*Pickup:\*.*)$/m, (line) => `${line}\n*Pickup Location (Directions):* ${pickupDirections}`)
+    : baseMessage;
   const waUrl = whatsAppLink(biz.whatsappNumber, message);
 
   return (

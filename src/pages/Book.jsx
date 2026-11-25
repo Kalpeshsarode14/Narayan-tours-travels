@@ -7,7 +7,7 @@ import { business } from '../config/site.js';
 import { telLink } from '../lib/utils.js';
 
 const steps = [
-  { icon: MapPin, t: 'Pick exact locations', d: 'Search your pickup and drop-off on Google Maps — building, station, airport or village.' },
+  { icon: MapPin, t: 'Pick exact locations', d: 'Search your pickup and drop-off — building, station, airport or village — and pick the exact place.' },
   { icon: Calculator, t: 'See the final fare', d: 'Distance, travel time and a full fare breakdown appear instantly, before you confirm.' },
   { icon: CircleCheck, t: 'Confirm & get a booking ID', d: `Your booking is saved and you can send the details to ${business.owner} on WhatsApp.` },
 ];
@@ -33,9 +33,9 @@ export default function Book() {
   const navigate = useNavigate();
   return (
     <>
-      <Seo title="Book Now — Instant Fare with Google Maps" path="/book"
-        description="Book a Dzire or Ertiga with Narayan Tours & Travels. Pick exact pickup and drop locations on Google Maps and see your final fare instantly before you confirm." />
-      <PageHero title="Book Your Ride" text="Choose exact locations on Google Maps and see your final fare before you confirm." crumb="Book Now" />
+      <Seo title="Book Now — Exact Locations & Instant Fare" path="/book"
+        description="Book a Dzire or Ertiga with Narayan Tours & Travels. Pick exact pickup and drop locations on the map and see your final fare instantly before you confirm." />
+      <PageHero title="Book Your Ride" text="Choose exact locations on the map and see your final fare before you confirm." crumb="Book Now" />
       <div className="container-x py-10 sm:py-14">
         <ol className="mb-8 grid gap-3 sm:grid-cols-3">
           {steps.map(({ icon: I, t, d }, i) => (

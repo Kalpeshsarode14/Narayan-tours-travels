@@ -5,18 +5,23 @@ import { randomUUID } from "node:crypto";
 
 process.env.SUPABASE_URL = "https://db.test";
 process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key";
-process.env.GOOGLE_MAPS_SERVER_KEY = "server-key";
+process.env.OLA_MAPS_API_KEY = "server-key";
 
-const { postQuote, postBooking, getBooking, adminPricing, adminBookings, getBookingConfig, newBookingCode } = await import(
+const { postQuote, postBooking, getBooking, getPlaces, adminPricing, adminBookings, getBookingConfig, newBookingCode } = await import(
   "../lib/server/handlers.js"
 );
 const { DEFAULT_PRICING } = await import("../lib/booking/default-pricing.js");
 
 type Row = Record<string, any>;
 let tables: Record<string, Row[]>;
-let googleCalls = 0;
-let googleKeySeen = "";
-let googleBody: any = null;
+let olaCalls: Record<string, number> = {};
+let olaKeySeen = "";
+let directionsParams: URLSearchParams | null = null;
+// What Ola "knows" about each place (the truth the server must use)
+const OLA_PLACES: Record<string, { name: string; address: string; lat: number; lng: number }> = {
+  "ola-platform:mumbaiCSMT": { name: "CSMT", address: "Fort, Mumbai, Maharashtra", lat: 18.94, lng: 72.83 },
+  "ola-platform:puneStation": { name: "Pune Railway Station", address: "Agarkar Nagar, Pune", lat: 18.52, lng: 73.87 },
+};
 
 beforeEach(() => {
   tables = {
@@ -26,7 +31,7 @@ beforeEach(() => {
     route_cache: [],
     bookings: [],
   };
-  googleCalls = 0;
+  olaCalls = {};
 });
 
 function matches(row: Row, params: URLSearchParams) {
@@ -42,23 +47,26 @@ function matches(row: Row, params: URLSearchParams) {
 globalThis.fetch = (async (input: any, init: any = {}) => {
   const url = new URL(String(input));
   const method = init.method || "GET";
-  if (url.host === "routes.googleapis.com") {
-    googleCalls++;
-    googleKeySeen = init.headers["x-goog-api-key"];
-    googleBody = JSON.parse(init.body);
-    return new Response(
-      JSON.stringify({
-        routes: [
-          {
-            distanceMeters: 150_400,
-            duration: "10800s",
-            polyline: { encodedPolyline: "abc" },
-            travelAdvisory: { tollInfo: { estimatedPrice: [{ currencyCode: "INR", units: "320" }] } },
-          },
-        ],
-      }),
-      { status: 200 }
-    );
+  if (url.host === "api.olamaps.io") {
+    olaCalls[url.pathname] = (olaCalls[url.pathname] || 0) + 1;
+    olaKeySeen = url.searchParams.get("api_key") || "";
+    if (url.pathname === "/places/v1/autocomplete") {
+      return new Response(JSON.stringify({ status: "ok", predictions: [
+        { place_id: "ola-platform:puneStation", description: "Pune Railway Station, Agarkar Nagar, Pune",
+          structured_formatting: { main_text: "Pune Railway Station", secondary_text: "Agarkar Nagar, Pune" },
+          geometry: { location: { lat: 18.52, lng: 73.87 } } },
+      ] }));
+    }
+    if (url.pathname === "/places/v1/details") {
+      const p = OLA_PLACES[url.searchParams.get("place_id") || ""];
+      if (!p) return new Response(JSON.stringify({ status: "zero_results" }));
+      return new Response(JSON.stringify({ status: "ok", result: { name: p.name, formatted_address: p.address, geometry: { location: { lat: p.lat, lng: p.lng } } } }));
+    }
+    if (url.pathname === "/routing/v1/directions/basic") {
+      assert.equal(method, "POST");
+      directionsParams = url.searchParams;
+      return new Response(JSON.stringify({ status: "SUCCESS", routes: [{ legs: [{ distance: 150_400, duration: 10_800 }], overview_polyline: "abc" }] }));
+    }
   }
   if (url.host === "db.test" && url.pathname === "/auth/v1/user") {
     const tok = init.headers.authorization;
@@ -107,8 +115,8 @@ globalThis.fetch = (async (input: any, init: any = {}) => {
 
 const place = (id: string, lat: number, lng: number) => ({ placeId: id, name: id, address: `${id}, Maharashtra`, location: { lat, lng } });
 const trip = {
-  pickup: place("ChIJmumbaiCSMT", 18.94, 72.83),
-  drop: place("ChIJpuneStation", 18.52, 73.87),
+  pickup: place("ola-platform:mumbaiCSMT", 18.94, 72.83),
+  drop: place("ola-platform:puneStation", 18.52, 73.87),
   stops: [],
   tripType: "one_way",
   vehicleId: "dzire",
@@ -126,15 +134,18 @@ test("quote → booking → confirmation, server-side fare and cached route", as
   const qRes = await postQuote(post(trip));
   assert.equal(qRes.status, 200);
   const q = await qRes.json();
-  assert.equal(q.fare.total, 151 * 14 + 300 + 320);
+  assert.equal(q.fare.total, 151 * 14 + 300 + 226);
   assert.equal(q.route.distanceMeters, 150_400);
-  assert.equal(googleKeySeen, "server-key");
-  assert.equal(googleBody.origin.placeId, "ChIJmumbaiCSMT");
+  assert.equal(olaKeySeen, "server-key");
+  assert.equal(directionsParams!.get("origin"), "18.94,72.83");
+  assert.equal(directionsParams!.get("destination"), "18.52,73.87");
+  assert.equal(q.places.pickup.name, "CSMT");
 
   // Changing vehicle re-uses the cached route (no extra Google call)
   const q2 = await (await postQuote(post({ ...trip, vehicleId: "ertiga" }))).json();
-  assert.equal(q2.fare.total, 151 * 17 + 300 + 320);
-  assert.equal(googleCalls, 1);
+  assert.equal(q2.fare.total, 151 * 17 + 300 + 226);
+  assert.equal(olaCalls["/routing/v1/directions/basic"], 1);
+  assert.equal(olaCalls["/places/v1/details"], 2, "each place verified once, then cached");
 
   const booking = {
     ...trip,
@@ -147,7 +158,8 @@ test("quote → booking → confirmation, server-side fare and cached route", as
   assert.equal(bRes.status, 201);
   const b = await bRes.json();
   assert.match(b.bookingId, /^NTT-\d{6}-[A-Z2-9]{5}$/);
-  assert.equal(googleCalls, 1, "booking uses the same cached route as the preview");
+  assert.equal(olaCalls["/routing/v1/directions/basic"], 1, "booking uses the same cached route as the preview");
+  assert.equal(olaCalls["/places/v1/details"], 2);
 
   const saved = tables.bookings[0];
   assert.equal(saved.final_fare, q.fare.total);
@@ -181,7 +193,7 @@ test("tampered fare is rejected; nothing saved", async () => {
   assert.equal(res.status, 409);
   const body = await res.json();
   assert.equal(body.error, "fare_changed");
-  assert.equal(body.fare.total, 2734);
+  assert.equal(body.fare.total, 2640);
   assert.equal(tables.bookings.length, 0);
 });
 
@@ -217,9 +229,9 @@ test("admin pricing: protected, validated, versioned; old bookings keep their fa
   assert.equal((await put.json()).pricing.version, 1);
 
   const q2 = await (await postQuote(post(trip))).json();
-  assert.equal(q2.fare.total, 151 * 16 + 300 + 320);
+  assert.equal(q2.fare.total, 151 * 16 + 300 + 226);
   assert.equal(q2.fare.pricingVersion, 1);
-  assert.equal(tables.bookings[0].final_fare, 2734, "existing booking unchanged");
+  assert.equal(tables.bookings[0].final_fare, 2640, "existing booking unchanged");
 
   // invalid pricing is refused
   newPricing.vehicles[0].oneWay.perKm = -1;
@@ -253,4 +265,30 @@ test("admin pricing: protected, validated, versioned; old bookings keep their fa
 test("booking codes are unique-looking and IST dated", () => {
   const c = newBookingCode(new Date("2026-12-09T20:00:00Z")); // 10 Dec 01:30 IST
   assert.match(c, /^NTT-261210-[2-9A-HJ-NP-Z]{5}$/);
+});
+
+test("place search goes through the server; tampered coordinates are replaced by the real place", async () => {
+  const r = await getPlaces(new Request("https://site.test/api/places?input=pune"));
+  const body = await r.json();
+  assert.equal(body.suggestions[0].placeId, "ola-platform:puneStation");
+  assert.equal(body.suggestions[0].main, "Pune Railway Station");
+  assert.equal("api_key" in body, false);
+  const d = await (await getPlaces(new Request("https://site.test/api/places?placeId=ola-platform:puneStation"))).json();
+  assert.equal(d.place.location.lat, 18.52);
+  const bad = await getPlaces(new Request("https://site.test/api/places?placeId=../../etc"));
+  assert.equal(bad.status, 400);
+
+  // Customer edits the drop coordinates in dev tools to look much closer (cheaper)
+  const tampered = { ...trip, drop: place("ola-platform:puneStation", 18.95, 72.84) };
+  const q = await (await postQuote(post(tampered))).json();
+  assert.equal(directionsParams!.get("destination"), "18.52,73.87", "server routes to the real place");
+  const res = await postBooking(post({ ...tampered, customer: { name: "Ravi Kumar", mobile: "9820012345", email: "r@x.in" }, passengers: 1, expectedTotal: q.fare.total }));
+  assert.equal(res.status, 201);
+  const saved = tables.bookings.at(-1)!;
+  assert.equal(saved.drop_lat, 18.52);
+  assert.equal(saved.drop_address, "Agarkar Nagar, Pune");
+
+  // Unknown place IDs are refused
+  const unknown = await postQuote(post({ ...trip, drop: place("ola-platform:doesNotExist", 1, 1) }));
+  assert.equal(unknown.status, 422);
 });

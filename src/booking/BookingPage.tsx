@@ -127,7 +127,7 @@ export default function BookingPage({ onConfirmed, hideHeader, fallback }: Props
         }
       : null;
 
-  // 1. Fetch the Google route via the server whenever the locations change
+  // 1. Fetch the driving route via the server whenever the locations change
   useEffect(() => {
     setServerFare(null);
     if (!pickup || !drop || !vehicleId) {
@@ -287,7 +287,7 @@ export default function BookingPage({ onConfirmed, hideHeader, fallback }: Props
       {!hideHeader && (
         <header className="ntt-booking-head">
           <h1>Book Your Cab</h1>
-          <p>Pick exact locations on Google Maps and see your final fare before you confirm.</p>
+          <p>Pick exact locations on the map and see your final fare before you confirm.</p>
         </header>
       )}
       {service && <p className="ntt-service-chip">Service: {service}</p>}

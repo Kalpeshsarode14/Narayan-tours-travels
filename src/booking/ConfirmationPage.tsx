@@ -80,9 +80,10 @@ export default function ConfirmationPage(props: Props) {
     },
     biz.name
   );
+  const fareFreeMessage = baseMessage.replace(/^\*Total Fare:\*.*$/m, "*Fare:* To be discussed with cab owner");
   const message = pickupDirections
-    ? baseMessage.replace(/^(\*Pickup:\*.*)$/m, (line) => `${line}\n*Pickup Location (Directions):* ${pickupDirections}`)
-    : baseMessage;
+    ? fareFreeMessage.replace(/^(\*Pickup:\*.*)$/m, (line) => `${line}\n*Pickup Location (Directions):* ${pickupDirections}`)
+    : fareFreeMessage;
   const waUrl = whatsAppLink(biz.whatsappNumber, message);
 
   return (

@@ -182,7 +182,7 @@ export function calculateFare(config: PricingConfig, input: FareInput, route: Ro
       let detail: string;
       if (config.toll.mode === "routes_api" && route.tollEstimate != null) {
         toll = route.tollEstimate * directions;
-        detail = directions === 2 ? "Google Maps toll estimate × 2 (both ways)" : "Google Maps toll estimate";
+        detail = directions === 2 ? "Map toll estimate × 2 (both ways)" : "Map toll estimate";
       } else {
         toll = routeKm * config.toll.perKmEstimate * directions;
         detail = `Estimated at ₹${config.toll.perKmEstimate}/km${directions === 2 ? " both ways" : ""}`;

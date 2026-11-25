@@ -159,7 +159,7 @@ function FloatingButtons() {
   }, []);
   const fab = 'grid h-14 w-14 place-items-center rounded-full shadow-xl transition hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400';
   return (
-    <div className="fixed bottom-5 right-4 z-30 flex flex-col items-end gap-3">
+    <div className="ntt-fabs fixed bottom-5 right-4 z-30 flex flex-col items-end gap-3">
       {showTop && (
         <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top"
           className="grid h-11 w-11 place-items-center rounded-full bg-white text-navy-900 shadow-lg ring-1 ring-navy-100">

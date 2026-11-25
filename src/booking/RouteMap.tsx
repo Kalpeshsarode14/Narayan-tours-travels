@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { importLibrary } from "./google-maps";
+import { loadOlaMaps } from "./ola-maps";
 import { PUBLIC_ENV } from "./env";
 import { formatDuration } from "../../lib/booking/fare-engine";
-import type { PlaceSelection } from "../../lib/booking/types";
+import { decodeRoutePolyline } from "../../lib/booking/polyline";
+import type { LatLng, PlaceSelection } from "../../lib/booking/types";
 
 interface Props {
   pickup: PlaceSelection | null;
@@ -15,13 +16,24 @@ interface Props {
   compact?: boolean;
 }
 
-const INDIA_CENTER = { lat: 19.2, lng: 73.4 }; // Maharashtra
+const MAHARASHTRA: [number, number] = [73.4, 19.2]; // [lng, lat]
+const ROUTE_ID = "ntt-route";
 
-/** Interactive Google Map with pickup/stops/drop markers and the server-computed route line. */
+function pinElement(label: string, color: string, title: string) {
+  const el = document.createElement("div");
+  el.className = "ntt-pin";
+  el.style.background = color;
+  el.textContent = label;
+  el.title = title;
+  return el;
+}
+
+/** Interactive Ola map (MapLibre) with pickup/stops/drop pins and the server-computed route line. */
 export default function RouteMap({ pickup, drop, stops, encodedPolyline, distanceKm, durationMinutes, loading, compact }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
-  const overlays = useRef<any[]>([]);
+  const sdkRef = useRef<any>(null);
+  const markers = useRef<any[]>([]);
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
 
@@ -29,71 +41,101 @@ export default function RouteMap({ pickup, drop, stops, encodedPolyline, distanc
     let cancelled = false;
     (async () => {
       try {
-        const { Map } = await importLibrary("maps");
+        const OlaMaps = await loadOlaMaps();
         if (cancelled || !el.current) return;
-        mapRef.current = new Map(el.current, {
-          center: INDIA_CENTER,
-          zoom: 7,
-          mapId: PUBLIC_ENV.googleMapsMapId,
-          gestureHandling: "cooperative",
-          streetViewControl: false,
-          mapTypeControl: false,
-          fullscreenControl: true,
-          clickableIcons: false,
+        const ola = new OlaMaps({ apiKey: PUBLIC_ENV.olaMapsBrowserKey });
+        sdkRef.current = OlaMaps;
+        const map = await ola.init({
+          style: PUBLIC_ENV.olaMapsStyle,
+          container: el.current,
+          center: MAHARASHTRA,
+          zoom: 6.5,
         });
-        setReady(true);
+        if (cancelled) return;
+        mapRef.current = map;
+        map.on?.("error", (e: any) => console.warn("[map]", e?.error?.message || e));
+        const markReady = () => !cancelled && setReady(true);
+        if (map.loaded?.() || map.isStyleLoaded?.()) markReady();
+        else map.on("load", markReady);
       } catch (e: any) {
         if (!cancelled) setError(e?.message || "Map could not be loaded.");
       }
     })();
     return () => {
       cancelled = true;
+      try {
+        mapRef.current?.remove?.();
+      } catch {
+        /* ignore */
+      }
     };
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    let cancelled = false;
-    (async () => {
-      const [{ AdvancedMarkerElement, PinElement }, geometry, core] = await Promise.all([
-        importLibrary("marker"),
-        encodedPolyline ? importLibrary("geometry") : Promise.resolve(null),
-        importLibrary("core"),
-      ]);
-      const { Polyline } = await importLibrary("maps");
-      if (cancelled) return;
-      overlays.current.forEach((o) => (o.setMap ? o.setMap(null) : (o.map = null)));
-      overlays.current = [];
-      const map = mapRef.current;
-      const bounds = new core.LatLngBounds();
-      const mark = (p: PlaceSelection, label: string, bg: string, title: string) => {
-        const pin = new PinElement({ glyphText: label, background: bg, borderColor: "#ffffff", glyphColor: "#ffffff", scale: 1.1 });
-        const m = new AdvancedMarkerElement({ map, position: p.location, content: pin.element ?? pin, title: `${title}: ${p.address}` });
-        overlays.current.push(m);
-        bounds.extend(p.location);
+    const map = mapRef.current;
+    const OlaMaps = sdkRef.current;
+    if (!ready || !map || !OlaMaps) return;
+    try {
+      markers.current.forEach((m) => m.remove());
+      markers.current = [];
+      const Marker = OlaMaps.Marker || (window as any).OlaMaps?.Marker;
+      const pts: LatLng[] = [];
+      const add = (p: PlaceSelection, label: string, color: string, title: string) => {
+        pts.push(p.location);
+        if (!Marker) return;
+        const m = new Marker({ element: pinElement(label, color, `${title}: ${p.address}`), anchor: "center" })
+          .setLngLat([p.location.lng, p.location.lat])
+          .addTo(map);
+        markers.current.push(m);
       };
-      if (pickup) mark(pickup, "A", "#16a34a", "Pickup");
-      stops.forEach((s, i) => mark(s, String(i + 1), "#f59e0b", `Stop ${i + 1}`));
-      if (drop) mark(drop, "B", "#dc2626", "Drop-off");
+      if (pickup) add(pickup, "A", "#16a34a", "Pickup");
+      stops.forEach((s, i) => add(s, String(i + 1), "#f59e0b", `Stop ${i + 1}`));
+      if (drop) add(drop, "B", "#dc2626", "Drop-off");
 
-      if (encodedPolyline && geometry) {
-        const path = geometry.encoding.decodePath(encodedPolyline);
-        const casing = new Polyline({ map, path, strokeColor: "#0a1834", strokeOpacity: 0.35, strokeWeight: 9 });
-        const line = new Polyline({ map, path, strokeColor: "#1d4ed8", strokeOpacity: 1, strokeWeight: 5 });
-        overlays.current.push(casing, line);
-        path.forEach((pt: any) => bounds.extend(pt));
+      // Route line
+      const line = encodedPolyline && pickup ? decodeRoutePolyline(encodedPolyline, pickup.location) : [];
+      const data = {
+        type: "Feature",
+        properties: {},
+        geometry: { type: "LineString", coordinates: line.map((p) => [p.lng, p.lat]) },
+      };
+      if (map.getSource?.(ROUTE_ID)) map.getSource(ROUTE_ID).setData(data);
+      else {
+        map.addSource(ROUTE_ID, { type: "geojson", data });
+        map.addLayer({
+          id: ROUTE_ID + "-casing",
+          type: "line",
+          source: ROUTE_ID,
+          layout: { "line-join": "round", "line-cap": "round" },
+          paint: { "line-color": "#0a1834", "line-width": 9, "line-opacity": 0.35 },
+        });
+        map.addLayer({
+          id: ROUTE_ID,
+          type: "line",
+          source: ROUTE_ID,
+          layout: { "line-join": "round", "line-cap": "round" },
+          paint: { "line-color": "#1d4ed8", "line-width": 5 },
+        });
       }
-      if (!bounds.isEmpty()) {
-        if (pickup && drop) map.fitBounds(bounds, 48);
-        else {
-          map.setCenter(bounds.getCenter());
-          map.setZoom(14);
-        }
+      line.forEach((p) => pts.push(p));
+
+      if (pts.length >= 2) {
+        const lngs = pts.map((p) => p.lng);
+        const lats = pts.map((p) => p.lat);
+        map.fitBounds(
+          [
+            [Math.min(...lngs), Math.min(...lats)],
+            [Math.max(...lngs), Math.max(...lats)],
+          ],
+          { padding: 48, maxZoom: 15, duration: 600 }
+        );
+      } else if (pts.length === 1) {
+        map.flyTo?.({ center: [pts[0].lng, pts[0].lat], zoom: 14, duration: 600 });
       }
-    })().catch(() => setError("Could not draw the route on the map."));
-    return () => {
-      cancelled = true;
-    };
+    } catch (e) {
+      console.warn("[map] draw failed", e);
+      setError("Could not draw the route on the map.");
+    }
   }, [ready, pickup?.placeId, drop?.placeId, stops.map((s) => s.placeId).join(","), encodedPolyline]);
 
   return (

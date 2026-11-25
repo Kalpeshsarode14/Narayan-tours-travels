@@ -2,7 +2,8 @@
 import { randomInt } from "node:crypto";
 import { calculateFare, FareError } from "../booking/fare-engine.js";
 import { parseBookingRequest, parseQuoteRequest, ValidationError } from "../booking/validation.js";
-import { getRoute } from "./google-routes.js";
+import { getRoute, verifyPlace, verifyPlaces } from "./routing.js";
+import { autocomplete } from "./ola.js";
 import { clientIp, handle, HttpError, json, rateLimit, readJson } from "./http.js";
 import { getActivePricing, getSettings, publicPricing, savePricing } from "./pricing-store.js";
 import { db, requireAdmin } from "./supabase.js";
@@ -40,12 +41,30 @@ export const getBookingConfig = handle(async () => {
   ); // no caching: a price change must reach customers immediately
 });
 
-/** POST /api/quote: Google route (server-side) and the authoritative fare. */
+/**
+ * GET /api/places?input=…   location search (Ola autocomplete) through the server, so the key stays secret.
+ * GET /api/places?placeId=… the confirmed name, address and coordinates of a chosen place.
+ */
+export const getPlaces = handle(async (req) => {
+  rateLimit(`places:${clientIp(req)}`, 90, 60_000);
+  const params = new URL(req.url).searchParams;
+  const placeId = (params.get("placeId") || "").trim();
+  if (placeId) {
+    if (!/^[A-Za-z0-9_:.\-]{1,200}$/.test(placeId)) throw new HttpError(400, "bad_place", "Invalid place.");
+    return json({ place: await verifyPlace({ placeId, name: "", address: "", location: { lat: 0, lng: 0 } }) });
+  }
+  const input = (params.get("input") || "").trim().slice(0, 120);
+  if (input.length < 2) return json({ suggestions: [] });
+  return json({ suggestions: await autocomplete(input) });
+});
+
+/** POST /api/quote: verified places, driving route (server-side) and the authoritative fare. */
 export const postQuote = handle(async (req) => {
   rateLimit(`quote:${clientIp(req)}`, 40, 60_000);
   const q = parseQuoteRequest(await readJson(req));
   const pricing = await getActivePricing();
-  const route = await getRoute(q.pickup, q.drop, q.stops);
+  const places = await verifyPlaces(q.pickup, q.drop, q.stops);
+  const route = await getRoute(places.pickup, places.drop, places.stops);
   if (route.distanceMeters / 1000 > pricing.maxRouteKm) {
     throw new HttpError(422, "route_too_long", `Routes over ${pricing.maxRouteKm} km cannot be booked online. Please call us.`);
   }
@@ -60,6 +79,7 @@ export const postQuote = handle(async (req) => {
   }
   return json({
     fareError,
+    places,
     route: {
       distanceMeters: route.distanceMeters,
       durationSeconds: route.durationSeconds,
@@ -78,7 +98,10 @@ export const postBooking = handle(async (req) => {
   const vehicleId = typeof (body as any)?.vehicleId === "string" ? (body as any).vehicleId : "";
   const vehicle = pricing.vehicles.find((v) => v.id === vehicleId && v.enabled);
   if (!vehicle) throw new ValidationError({ vehicleId: "Selected vehicle is not available." });
-  const b = parseBookingRequest(body, vehicle.seats);
+  const parsed = parseBookingRequest(body, vehicle.seats);
+  // Use the map provider's own record of each place, never coordinates sent by the browser.
+  const places = await verifyPlaces(parsed.pickup, parsed.drop, parsed.stops);
+  const b = { ...parsed, ...places };
 
   const route = await getRoute(b.pickup, b.drop, b.stops);
   const fare = calculateFare(pricing, b.fare, route);

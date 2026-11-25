@@ -885,3 +885,19 @@
 .ntt-booking h3 {
   font-weight: 700;
 }
+/* Map pins (Ola Maps markers) */
+.ntt-pin {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  color: #fff;
+  font: 700 12px/1 Poppins, system-ui, sans-serif;
+  box-shadow: 0 2px 6px rgba(10, 24, 52, 0.35);
+}
+.ntt-map .maplibregl-map,
+.ntt-map canvas {
+  border-radius: 0;
+}

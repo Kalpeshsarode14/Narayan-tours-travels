@@ -60,7 +60,8 @@ vercel --prod # publish
 | Services, destinations, FAQ, gallery | `src/data/content.js` |
 | Photos | `public/images/…` — then set `photo: 'folder/file.webp'` |
 
-A price change in `site.js` updates the fleet cards, fare calculator, booking form and footer together.
+A price change in `site.js` updates the fleet cards, the quick fare calculator and the footer together.
+**Prices used for real bookings on `/book` are set in the Admin panel (`/admin`), not in `site.js`.** When you change a rate in the admin panel, also update `ratePerKm` here so the marketing pages show the same number.
 
 **Photos:** the current photos were cut from your posters. For sharper pictures, take real photos of your cars and trips, put them in `public/images/fleet/` or `public/images/destinations/`, and update the file names in `site.js` / `content.js`. Landscape photos about 1200 px wide work best.
 
@@ -68,20 +69,18 @@ A price change in `site.js` updates the fleet cards, fare calculator, booking fo
 
 ## 4. How booking works (important)
 
-* The **Book Now** form checks every required field, shows a booking summary and opens **WhatsApp** with the full request addressed to **+91 99674 56323**. The customer taps *Send*.
-* The site clearly says the trip is **not confirmed** until the owner replies.
-* The **contact form** works the same way (sends via WhatsApp).
-* **Nothing is stored on a server** — no database is configured, and the site never claims otherwise.
+The **Book Now** page (`/book`) is a full online booking system:
 
-### Optional: saving bookings in a database
+* The customer picks **exact pickup, stops and drop-off from Google Maps** suggestions (typed text alone is not accepted).
+* The site gets the real **driving route, distance and travel time** from Google and shows it on a map.
+* The **final fare** and a full breakdown (base, distance, driver allowance, tolls, night/waiting/stop charges, add-ons) appear instantly and update when anything changes.
+* On **Confirm Booking**, the server recalculates the fare (customers cannot change it), saves the booking in the **Supabase** database with a booking ID such as `NTT-261210-7KQ4M`, and shows a confirmation page with a **Send on WhatsApp** button to +91 99674 56323.
+* The owner manages **prices, bookings and the WhatsApp number** at `/admin` (password protected).
+* Until the booking service is set up (Google keys + Supabase + Vercel settings), `/book` automatically falls back to the previous **WhatsApp request form**, so the site never breaks.
 
-If you later want every booking saved (to see a list, export to Excel, etc.), the simplest options are:
+**Setup (one time, ~30 minutes):** follow [`docs/BOOKING-SETUP.md`](docs/BOOKING-SETUP.md).
 
-* **Supabase** (free tier) — create a `bookings` table and insert the form data from `BookingForm` in `src/components/Forms.jsx` before opening WhatsApp. Use the public "anon" key with a row-level-security rule that only allows inserts.
-* **Firebase Firestore** — same idea with `addDoc(collection(db, 'bookings'), data)`.
-* **Google Sheets** via Google Apps Script — easiest to read for non-technical owners.
-
-Keep WhatsApp as the confirmation step either way.
+The **contact form** still sends via WhatsApp. The quick **Fare Calculator** page (km slider) is still there and links to `/book` for the exact fare.
 
 ---
 
@@ -99,7 +98,14 @@ After going live, add the site to **Google Search Console** and your **Google Bu
 ## 6. Project structure
 
 ```
+api/                  ← Vercel server functions: route + fare (/api/quote), bookings, admin
+lib/booking/          ← fare calculation, validation, WhatsApp message (shared by browser and server)
+lib/server/           ← Google Routes, Supabase, admin login check (server only)
+supabase/schema.sql   ← database tables (run once in Supabase)
+tests/                ← automated tests: npm test
 src/
+  booking/            ← booking page, Google Maps search + map, fare breakdown, confirmation
+  admin/              ← admin dashboard (pricing, bookings, business settings)
   config/site.js      ← business details, prices, packages, routes, testimonials
   data/content.js     ← services, destinations, FAQ, gallery
   lib/utils.js        ← fare formula, WhatsApp link, validation helpers

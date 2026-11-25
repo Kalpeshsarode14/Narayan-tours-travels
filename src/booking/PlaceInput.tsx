@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { importLibrary } from "./google-maps";
+import { api } from "./api";
 import type { PlaceSelection } from "../../lib/booking/types";
 
 interface Props {
@@ -19,15 +19,12 @@ interface Suggestion {
   placeId: string;
   main: string;
   secondary: string;
-  prediction: any;
 }
 
-// Bias suggestions toward Maharashtra; results anywhere in India remain available.
-const MAHARASHTRA_BIAS = { north: 22.1, south: 15.6, east: 80.9, west: 72.6 };
-
 /**
- * Location search using Google Places API (New) Autocomplete Data API, with session tokens
- * (one billable session per selection). Only a selected Google place counts as a value.
+ * Location search using Ola Maps Autocomplete through our own /api/places (the key stays on the server).
+ * Only a place picked from the suggestions counts as a value; the server then confirms its exact
+ * name, address and coordinates with Ola.
  */
 export default function PlaceInput({ label, placeholder, value, onChange, error, icon = "pickup", onRemove, autoFocus, initialText }: Props) {
   const id = useId();
@@ -38,7 +35,6 @@ export default function PlaceInput({ label, placeholder, value, onChange, error,
   const [active, setActive] = useState(-1);
   const [loading, setLoading] = useState(false);
   const [mapsError, setMapsError] = useState("");
-  const sessionRef = useRef<any>(null);
   const reqRef = useRef(0);
   const boxRef = useRef<HTMLDivElement>(null);
 
@@ -67,34 +63,15 @@ export default function PlaceInput({ label, placeholder, value, onChange, error,
     const t = setTimeout(async () => {
       setLoading(true);
       try {
-        const places = await importLibrary("places");
-        if (!sessionRef.current) sessionRef.current = new places.AutocompleteSessionToken();
-        const { suggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
-          input: q,
-          sessionToken: sessionRef.current,
-          includedRegionCodes: ["in"],
-          locationBias: MAHARASHTRA_BIAS,
-          language: "en-IN",
-          region: "in",
-        });
+        const { suggestions } = await api.places(q);
         if (n !== reqRef.current) return;
-        setItems(
-          suggestions
-            .filter((s: any) => s.placePrediction)
-            .slice(0, 6)
-            .map((s: any) => ({
-              placeId: s.placePrediction.placeId,
-              main: s.placePrediction.mainText?.text || s.placePrediction.text.text,
-              secondary: s.placePrediction.secondaryText?.text || "",
-              prediction: s.placePrediction,
-            }))
-        );
+        setItems(suggestions.map((x) => ({ placeId: x.placeId, main: x.main, secondary: x.secondary })));
         // Only pop the list open while the customer is in this field (not for pre-filled text on page load)
         setOpen(document.activeElement === inputRef.current);
         setActive(-1);
         setMapsError("");
       } catch (e: any) {
-        if (n === reqRef.current) setMapsError(e?.message?.includes("Google Maps") ? e.message : "Location search is unavailable right now. Please try again.");
+        if (n === reqRef.current) setMapsError(e?.message || "Location search is unavailable right now. Please try again.");
       } finally {
         if (n === reqRef.current) setLoading(false);
       }
@@ -106,15 +83,7 @@ export default function PlaceInput({ label, placeholder, value, onChange, error,
     setOpen(false);
     setLoading(true);
     try {
-      const place = s.prediction.toPlace();
-      await place.fetchFields({ fields: ["id", "displayName", "formattedAddress", "location"] });
-      sessionRef.current = null; // session ends with the details request
-      const sel: PlaceSelection = {
-        placeId: place.id,
-        name: place.displayName || s.main,
-        address: place.formattedAddress || `${s.main}, ${s.secondary}`,
-        location: { lat: place.location.lat(), lng: place.location.lng() },
-      };
+      const { place: sel } = await api.place(s.placeId);
       onChange(sel);
       setText(sel.name && !sel.address.startsWith(sel.name) ? `${sel.name}, ${sel.address}` : sel.address);
     } catch {
@@ -205,11 +174,11 @@ export default function PlaceInput({ label, placeholder, value, onChange, error,
             </li>
           ))}
           <li className="ntt-powered" aria-hidden>
-            powered by Google
+            Search by Ola Maps
           </li>
         </ul>
       )}
-      {value && <p className="ntt-hint ntt-verified">✓ Location verified on Google Maps</p>}
+      {value && <p className="ntt-hint ntt-verified">✓ Exact location selected</p>}
       {!value && text.trim().length >= 2 && !open && !loading && !shownError && (
         <p className="ntt-hint">Please choose a location from the suggestions.</p>
       )}

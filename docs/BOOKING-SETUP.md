@@ -1,43 +1,40 @@
-# NTT Travel: Google Maps Booking & Automatic Fare System
+# NTT Travel: Map Booking & Automatic Fare System (Ola Maps)
 
 What this adds to **ntt-travel.vercel.app**:
 
-- **/book**: the customer picks exact pickup, stops and drop-off from Google Maps suggestions. The route appears on a live map, and the full fare breakdown updates instantly when anything changes.
+- **/book**: the customer picks exact pickup, stops and drop-off from Ola Maps location suggestions. The route appears on a live map, and the full fare breakdown updates instantly when anything changes.
 - **/book/confirmation**: shows the saved booking with its booking ID, route map, locked fare breakdown, and a **Send on WhatsApp** button.
 - **/admin**: password-protected dashboard to edit all pricing, view and update bookings, and set the WhatsApp number.
 - **/api/\***: Vercel serverless functions. The route distance and the final fare are always recalculated on the server before a booking is saved.
 
-> **Status:** The code is merged into this site and tested: 19 automated tests, plus browser tests of the real site pages on phone and desktop with Google and Supabase simulated. Online booking will **not** work on the live site until you complete steps 1–4 below (API keys, database, environment variables). Until then, `/book` automatically shows the previous WhatsApp request form.
+> **Status:** The code is merged into this site and tested: 22 automated tests, plus browser tests of the real site pages on phone and desktop with Ola Maps and Supabase simulated. Online booking will **not** work on the live site until you complete steps 1–4 below (API keys, database, environment variables). Until then, `/book` automatically shows the previous WhatsApp request form.
 
 ---
 
-## 1. Google Maps Platform (about 15 minutes)
+## 1. Ola Maps (about 10 minutes, free)
 
-1. Go to <https://console.cloud.google.com/> and create a project (e.g. `ntt-travel`). **Enable billing.** Google requires it even within the free usage.
-2. **APIs & Services → Library**. Enable these three:
-   - **Maps JavaScript API** (the map)
-   - **Places API (New)** (location search). Make sure it's the "(New)" one.
-   - **Routes API** (distance, travel time, tolls)
-3. **APIs & Services → Credentials → Create credentials → API key**. Create **two keys**:
+Ola Maps (by Krutrim) includes **100,000 free calls per API every month**. You pay only beyond that, and since 1 September 2026 payment is by prepaid credits, so there are no surprise card charges. No credits are needed while usage stays inside the free allowance. Current prices: <https://maps.olakrutrim.com/pricing>.
 
-   | Key | Application restriction | API restriction | Where it goes |
-   |---|---|---|---|
-   | **Browser key** | *Websites*: `https://ntt-travel.vercel.app/*`, `https://ntt-travel-*.vercel.app/*` (previews), your custom domain if any (`https://www.yourdomain.com/*`), and `http://localhost:5173/*` for local testing | Maps JavaScript API, Places API (New) | `VITE_GOOGLE_MAPS_BROWSER_KEY` |
-   | **Server key** | *None*. Vercel has no fixed IP address, so this key is protected by staying secret on the server | **Routes API only** | `GOOGLE_MAPS_SERVER_KEY` (never prefix with `VITE_`) |
+1. Go to <https://maps.olakrutrim.com>, click **Get started** and sign in to **Krutrim Cloud** (mobile number + OTP).
+2. Open **Ola Maps → Maps Credentials → New Credentials** and create **two** credentials:
 
-4. **Map ID** (needed for the modern map markers): **Google Maps Platform → Map management → Create Map ID**. Choose type *JavaScript*, *Vector*. Copy the ID into `VITE_GOOGLE_MAPS_MAP_ID`.
-5. **Quotas (protects your bill).** Go to **APIs & Services → each API → Quotas & system limits** and set per-day caps. Sensible starting values for a small cab business:
-   - Routes API, *Compute Routes requests per day*: **1,000**
-   - Places API (New), *Autocomplete requests per day*: **5,000**; *Place Details requests per day*: **2,000**
-   - Maps JavaScript API, *Map loads per day*: **3,000**
-6. **Billing → Budgets & alerts**: add a monthly budget (e.g. ₹2,000) with email alerts at 50/90/100%.
+   | Credential | Name | Domains (whitelist) | Used for | Goes in |
+   |---|---|---|---|---|
+   | **Browser** | `ntt-website-map` | `ntt-travel.vercel.app, ntt-travel-git-google-maps-booking-narayan-tour-and-travels.vercel.app, localhost` (and your own domain if you have one) | Drawing the map only | `VITE_OLA_MAPS_API_KEY` |
+   | **Server** | `ntt-server` | *leave empty* | Location search, place check, driving route (called from Vercel, never from the browser) | `OLA_MAPS_API_KEY` (never prefix with `VITE_`) |
 
-**Cost notes**
-- Each search uses one autocomplete *session* (a session token is reused for typing and then the selection).
-- Routes are cached in the database for 24 hours. Changing vehicle, trip type, date or add-ons does **not** call Google again, and the booking reuses the preview's route.
-- Toll estimates (`TOLLS`) are billed at a higher Routes tier. To turn them off, set `GOOGLE_ROUTES_TOLLS=off` in Vercel. In Admin → Charges → Tolls, pick either "Estimate at ₹ per km" or "Not included, customer pays at actuals".
-- Check current prices at <https://mapsplatform.google.com/pricing/>.
-- **Verify tolls once:** after setup, get a quote for Mumbai CSMT → Pune Station (Expressway). Compare the toll line with what you actually pay. If Google's figure is off for your routes, switch to "₹ per km".
+   Open each credential and copy its **API Key**.
+3. Keep the server key secret. It is only ever put into Vercel's environment variables.
+
+**How calls are used** (so you can estimate against the free 100,000/month):
+- Typing a location: about 2–4 search calls (searches wait until the customer pauses typing).
+- Choosing a location: 1 place-details call, then cached for 30 days.
+- Each new pickup/drop combination: 1 route call, then cached for 24 hours. Changing vehicle, trip type, date or add-ons does **not** call Ola again, and the booking reuses the preview's route.
+- Each map view: counts as Dynamic Maps usage.
+
+**Tolls:** Ola Maps does not return toll prices. Tolls are charged by your admin rule: **"Estimate at ₹ per km"** (default ₹1.5/km, both ways for round trips) or **"Not included, customer pays at actuals"**. Set this in Admin → Charges → Tolls.
+
+**Security:** the server checks every chosen location with Ola (place details) and uses Ola's coordinates, not the browser's, so a customer can't fake a closer drop point to lower the fare. Searches go through `/api/places` with a per-visitor rate limit, so the server key is never exposed.
 
 ## 2. Supabase database (about 10 minutes)
 
@@ -65,10 +62,8 @@ Every table has Row Level Security on with no public policies, so the browser ca
 |---|---|---|
 | `SUPABASE_URL` | `https://xxxx.supabase.co` | No |
 | `SUPABASE_SERVICE_ROLE_KEY` | service_role key | **No, secret** |
-| `GOOGLE_MAPS_SERVER_KEY` | Server key (Routes API) | **No, secret** |
-| `GOOGLE_ROUTES_TOLLS` | `on` (default) or `off` | No |
-| `VITE_GOOGLE_MAPS_BROWSER_KEY` | Browser key (referrer-restricted) | Yes |
-| `VITE_GOOGLE_MAPS_MAP_ID` | Map ID from step 1.4 | Yes |
+| `OLA_MAPS_API_KEY` | Ola **server** credential's API key | **No, secret** |
+| `VITE_OLA_MAPS_API_KEY` | Ola **browser** credential's API key (domain-whitelisted) | Yes |
 | `VITE_SUPABASE_URL` | `https://xxxx.supabase.co` | Yes |
 | `VITE_SUPABASE_ANON_KEY` | anon key | Yes |
 
@@ -76,7 +71,7 @@ For local development, copy `.env.example` to `.env.local` and fill it in (`.env
 
 Then **redeploy**. Vite bakes the `VITE_` values into the build.
 
-**Recommended:** **Vercel → Firewall → Rules → Rate limit**. Add 30 requests/minute per IP for `/api/quote` and 5 requests/10 minutes per IP for `/api/bookings`. The code has its own per-instance limiter too, but Vercel's rule is global.
+**Recommended:** **Vercel → Firewall → Rules → Rate limit**. Add 60 requests/minute per IP for `/api/places`, 30 requests/minute per IP for `/api/quote`, and 5 requests/10 minutes per IP for `/api/bookings`. The code has its own per-instance limiter too, but Vercel's rule is global.
 
 ## 4. First login and pricing
 
@@ -97,13 +92,13 @@ Then **redeploy**. Vite bakes the `VITE_` values into the build.
 | Local | package price + extra km × rate + extra hours × rate |
 | Airport | fixed fare (includes N km) + km beyond N × rate + airport parking |
 
-The browser and the server use the **same calculation file** (`lib/booking/fare-engine.ts`). The browser shows it instantly. The server recalculates it from the Google route and the database pricing when the customer books, and rejects the booking if the totals differ by more than 50 paise. A fare edited in browser dev tools is therefore refused (tested).
+The browser and the server use the **same calculation file** (`lib/booking/fare-engine.ts`). The browser shows it instantly. The server recalculates it from the Ola route and the database pricing when the customer books, and rejects the booking if the totals differ by more than 50 paise. A fare edited in browser dev tools is therefore refused (tested).
 
 ## What changed in the existing site
 
 | File | Change |
 |---|---|
-| `src/pages/Book.jsx` | Now shows the Google Maps booking system. Falls back to the old WhatsApp form if the booking service isn't configured. |
+| `src/pages/Book.jsx` | Now shows the map booking system. Falls back to the old WhatsApp form if the booking service isn't configured. |
 | `src/pages/BookingConfirmation.jsx` | New: `/book/confirmation` |
 | `src/App.jsx` | Added `/book/confirmation` and `/admin` routes. The admin code is loaded only when `/admin` is opened. |
 | `src/components/Layout.jsx` | Floating Call/WhatsApp buttons get a class `ntt-fabs`, so on phones the booking page can hide them (its fare bar has its own Call button). |
@@ -121,15 +116,16 @@ Existing links keep working: `/book?vehicle=ertiga`, `/book?tripType=round`, `/b
 ```
 api/                         Vercel serverless functions
   booking-config.ts  GET     public pricing + business info
-  quote.ts           POST    Google route (server key) + fare
+  places.ts          GET     location search / place check (Ola, server key)
+  quote.ts           POST    verified places + Ola route + fare
   bookings.ts        POST    validate → recalculate → save → booking ID
   booking.ts         GET     confirmation data (needs id + secret token)
   admin/pricing.ts   GET/PUT
   admin/bookings.ts  GET/PATCH
   admin/settings.ts  GET/PUT
-lib/booking/                 shared, browser-safe: fare-engine, types, default-pricing, validation, whatsapp
-lib/server/                  server only: handlers, google-routes, pricing-store, supabase, http
-src/booking/                 BookingPage, ConfirmationPage, PlaceInput, RouteMap, FareSummary, booking.css
+lib/booking/                 shared, browser-safe: fare-engine, types, default-pricing, validation, whatsapp, polyline
+lib/server/                  server only: handlers, ola (API client), routing (verify + route + cache), pricing-store, supabase, http
+src/booking/                 BookingPage, ConfirmationPage, PlaceInput, RouteMap (Ola web map), ola-maps (SDK loader), FareSummary, booking.css
 src/admin/                   AdminApp, PricingEditor, BookingsTable, SettingsForm, auth, admin.css
 supabase/schema.sql
 tests/                       npm test

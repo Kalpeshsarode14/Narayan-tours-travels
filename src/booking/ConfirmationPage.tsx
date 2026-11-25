@@ -80,7 +80,10 @@ export default function ConfirmationPage(props: Props) {
     },
     biz.name
   );
-  const fareFreeMessage = baseMessage.replace(/^\*Total Fare:\*.*$/m, "*Fare:* To be discussed with cab owner");
+  const fareFreeMessage = baseMessage.replace(
+    /^\*Total Fare:\*\s*(.*)$/m,
+    (_line, amount) => `*Approx. Fare:* ${amount} (approximate)\n_Kindly discuss final fare with cab owner._`
+  );
   const message = pickupDirections
     ? fareFreeMessage.replace(/^(\*Pickup:\*.*)$/m, (line) => `${line}\n*Pickup Location (Directions):* ${pickupDirections}`)
     : fareFreeMessage;

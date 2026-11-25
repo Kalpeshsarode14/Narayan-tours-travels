@@ -108,7 +108,11 @@ interface DirectionsResponse {
 
 const ll = (p: LatLng) => `${p.lat},${p.lng}`;
 
-/** Driving route via Directions Basic (no live traffic: stable distances for pricing). */
+/**
+ * Driving route via the Directions API.
+ * (Directions *Basic* returns unrealistic ETAs, e.g. ~10 hours for Mumbai→Lonavala,
+ * so we use the full endpoint with traffic metadata off.)
+ */
 export async function route(points: LatLng[]): Promise<RouteInfo> {
   const [origin, ...rest] = points;
   const destination = rest.pop()!;
@@ -119,9 +123,10 @@ export async function route(points: LatLng[]): Promise<RouteInfo> {
     steps: "false",
     overview: "full",
     language: "en",
+    traffic_metadata: "false",
   };
   if (rest.length) params.waypoints = rest.map(ll).join("|");
-  const data = await ola<DirectionsResponse>("POST", "/routing/v1/directions/basic", params);
+  const data = await ola<DirectionsResponse>("POST", "/routing/v1/directions", params);
   const r = data.routes?.[0];
   const legs = r?.legs || [];
   const distanceMeters = legs.reduce((s, l) => s + (Number(l.distance) || 0), 0);

@@ -6,6 +6,7 @@ import { btn, WhatsAppIcon, SocialLinks } from './UI.jsx';
 import { business, vehicles } from '../config/site.js';
 import { services, destinations } from '../data/content.js';
 import { whatsappLink, telLink } from '../lib/utils.js';
+import VisitorCounter from './VisitorCounter.jsx';
 
 export const navItems = [
   { to: '/', label: 'Home' },
@@ -138,8 +139,9 @@ function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="container-x flex flex-col gap-2 py-5 text-sm sm:flex-row sm:justify-between">
+        <div className="container-x flex flex-col gap-2 py-5 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <p>© {year} {business.name} ({business.brand}). All rights reserved.</p>
+          <VisitorCounter />
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span>{business.tagline}</span>
             <Link to="/photo-credits" className="underline underline-offset-2 opacity-80 hover:opacity-100">Photo credits</Link>
